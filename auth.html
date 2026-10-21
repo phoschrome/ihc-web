@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#FFB03B">
+  <meta name="description" content="Inicia sesión o crea tu cuenta de Saborcito.">
+  <title>Entrar o registrarse — Saborcito</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+  <a class="skip-link" href="#auth-content">Saltar al formulario</a>
+  <header class="topbar auth-topbar">
+    <a class="brand" href="index.html" aria-label="Saborcito, inicio">
+      <span class="brand-mark" aria-hidden="true">🍊</span><span>Saborcito</span>
+    </a>
+    <a class="text-link" href="index.html">← Volver al sitio</a>
+  </header>
+
+  <main class="auth-main" id="auth-content">
+    <section class="auth-intro" aria-labelledby="auth-welcome">
+      <span class="eyebrow">🍊 Qué bueno tenerte aquí</span>
+      <h1 id="auth-welcome">Todo lo rico empieza aquí.</h1>
+      <p>Accede a tu cuenta o regístrate para tener tus favoritos y tus pedidos en un solo lugar.</p>
+      <ul class="auth-benefits">
+        <li><span aria-hidden="true">♥</span> Guarda tus platos favoritos</li>
+        <li><span aria-hidden="true">🛒</span> Arma tu carrito fácilmente</li>
+        <li><span aria-hidden="true">🚴</span> Disfruta tus pedidos favoritos</li>
+      </ul>
+    </section>
+
+    <section class="auth-card" aria-labelledby="form-title">
+      <div class="auth-tabs" role="tablist" aria-label="Acceso a la cuenta">
+        <button class="auth-tab" id="login-tab" type="button" role="tab" aria-selected="true" aria-controls="account-form" data-mode="login">Iniciar sesión</button>
+        <button class="auth-tab" id="register-tab" type="button" role="tab" aria-selected="false" aria-controls="account-form" data-mode="register" tabindex="-1">Registrarme</button>
+      </div>
+      <h2 id="form-title">¡Hola de nuevo!</h2>
+      <p class="auth-subtitle" id="form-subtitle">Ingresa tus datos para continuar.</p>
+
+      <form class="auth-form" id="account-form">
+        <div class="auth-field" id="name-field" hidden>
+          <label for="full-name">Nombre completo</label>
+          <input id="full-name" name="name" type="text" autocomplete="name" minlength="2" disabled>
+        </div>
+        <label class="auth-field" for="email">
+          Correo electrónico
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com" required>
+        </label>
+        <label class="auth-field" for="password">
+          Contraseña
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres" minlength="8" required>
+        </label>
+        <div class="auth-field" id="confirm-field" hidden>
+          <label for="confirm-password">Confirma tu contraseña</label>
+          <input id="confirm-password" name="confirm-password" type="password" autocomplete="new-password" minlength="8" disabled>
+        </div>
+        <button class="primary-button auth-submit" id="submit-button" type="submit">Iniciar sesión</button>
+        <p class="auth-feedback" id="auth-feedback" role="status" aria-live="polite"></p>
+      </form>
+
+      <p class="auth-security-note">Para usar el acceso, conecta un servicio seguro de autenticación en la nube. No introduzcas credenciales reales hasta que esté configurado.</p>
+    </section>
+  </main>
+
+  <footer class="auth-footer">© 2026 Saborcito · Hecho para disfrutar cada bocado.</footer>
+  <script src="auth.js" defer></script>
+</body>
+</html>
