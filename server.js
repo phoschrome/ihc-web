@@ -185,7 +185,7 @@ async function handleRequest(request, response) {
     "Content-Type": file[1],
     "Cache-Control": "no-store",
     "X-Frame-Options": "DENY",
-    "Content-Security-Policy": "default-src 'self' https://images.unsplash.com; img-src 'self' https://images.unsplash.com data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'self'; frame-ancestors 'none'"
+    "Content-Security-Policy": "default-src 'self' https://images.unsplash.com; img-src 'self' https: data:; style-src 'self'; script-src 'self'; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; base-uri 'self'; frame-ancestors 'none'"
   });
   return response.end(request.method === "HEAD" ? undefined : contents);
 }

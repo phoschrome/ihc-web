@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#FFB03B">
   <meta name="description" content="Pide tus platos favoritos y descubre restaurantes cerca de ti en Saborcito.">
+  <meta name="saborcito-api-base-url" content="">
   <title>Saborcito — comida rica, a tu manera</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -82,7 +83,16 @@
         <div><h2 id="restaurants-title">Restaurantes cerca de ti</h2><p>Algo rico está más cerca de lo que crees.</p></div>
         <a class="text-link" href="#categorias">Explorar categorías</a>
       </div>
+      <p class="catalog-source-note" id="catalog-source-note" role="status">Mostrando datos de ejemplo. La conexión con la base de datos cloud se configurará cuando elijas el proveedor.</p>
       <div class="restaurant-grid" id="restaurant-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="section restaurant-menu-section" id="restaurant-menu" aria-labelledby="restaurant-menu-title" hidden>
+      <div class="section-heading">
+        <div><h2 id="restaurant-menu-title">Menú del restaurante</h2><p id="restaurant-menu-description"></p></div>
+        <button class="text-link restaurant-menu-back" id="restaurant-menu-back" type="button">← Volver a restaurantes</button>
+      </div>
+      <div class="food-grid" id="restaurant-dish-grid" aria-live="polite"></div>
     </section>
 
     <section class="section" id="ofertas" aria-labelledby="offers-title">
