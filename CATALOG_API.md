@@ -5,7 +5,7 @@ El catálogo usa un contrato REST independiente del proveedor. Cuando se elija l
 - `GET /restaurants`
 - `GET /dishes`
 
-En `index.html`, configura la URL base pública de la API en `meta[name="saborcito-api-base-url"]`. Por ejemplo, si los recursos están en `https://api.ejemplo.com/v1/restaurants` y `https://api.ejemplo.com/v1/dishes`, establece el contenido de la meta a `https://api.ejemplo.com/v1`. La URL debe ser HTTPS; HTTP solo se permite para `localhost` durante el desarrollo.
+En `restaurants.html`, configura la URL base pública de la API en `meta[name="saborcito-api-base-url"]`. Por ejemplo, si los recursos están en `https://api.ejemplo.com/v1/restaurants` y `https://api.ejemplo.com/v1/dishes`, establece el contenido de la meta a `https://api.ejemplo.com/v1`. La URL debe ser HTTPS; HTTP solo se permite para `localhost` durante el desarrollo.
 
 Cada recurso puede responder directamente con una lista o con un objeto `{ "data": [...] }`.
 
@@ -50,6 +50,6 @@ Campos requeridos: `id`, `name`. `category`, `icon`, `rating`, `time` (o `delive
 
 Campos requeridos: `id`, `restaurantId`, `name` y `price` numérico no negativo. `restaurantId` debe coincidir con el `id` de un restaurante. `category`, `description`, `image` y `alt` son opcionales.
 
-La página solicita ambos recursos, valida los campos y genera las tarjetas y el menú del restaurante desde las respuestas. Si la URL base no está configurada, muestra los datos de ejemplo. Si la API falla, muestra el error en la sección de restaurantes en lugar de sustituirlo silenciosamente por datos de ejemplo.
+La página independiente `restaurants.html` solicita ambos recursos, valida los campos y genera las tarjetas y el menú del restaurante desde las respuestas. Los menús tienen una URL propia, por ejemplo `restaurants.html?restaurant=restaurante-123`. Si la URL base no está configurada, muestra los datos de ejemplo. Si la API falla, muestra el error en vez de sustituirlo silenciosamente por datos de ejemplo.
 
 No coloques contraseñas, claves privadas ni credenciales de administrador en el HTML o JavaScript público. La API debe exponer únicamente datos públicos del catálogo y aplicar sus propias reglas de acceso. La configuración de autenticación de usuarios es independiente de este catálogo.

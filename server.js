@@ -16,9 +16,11 @@ const sessions = new Map();
 const staticFiles = new Map([
   ["/", ["index.html", "text/html; charset=utf-8"]],
   ["/index.html", ["index.html", "text/html; charset=utf-8"]],
+  ["/restaurants.html", ["restaurants.html", "text/html; charset=utf-8"]],
   ["/auth.html", ["auth.html", "text/html; charset=utf-8"]],
   ["/styles.css", ["styles.css", "text/css; charset=utf-8"]],
   ["/script.js", ["script.js", "text/javascript; charset=utf-8"]],
+  ["/restaurants.js", ["restaurants.js", "text/javascript; charset=utf-8"]],
   ["/auth.js", ["auth.js", "text/javascript; charset=utf-8"]]
 ]);
 

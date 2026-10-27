@@ -9,11 +9,6 @@
       { eyebrow: "🎉 Novedad de la semana", title: "Un festín para tus sentidos", description: "Descubre nuevos sabores y encuentra tu próximo plato favorito.", tag: "2X1 EN PIZZAS", food: "🍕" },
       { eyebrow: "🌱 Fresco y delicioso", title: "Dale color a tu día", description: "Opciones frescas y deliciosas, preparadas especialmente para ti.", tag: "DESDE $99", food: "🥗" }
     ];
-    let restaurants = [
-      { id: "la-burgeria", name: "La Burgería", category: "Hamburguesas", icon: "🍔", rating: "4.8", time: "20–30 min", description: "Hamburguesas hechas al momento." },
-      { id: "forno-amore", name: "Forno & Amore", category: "Pizza", icon: "🍕", rating: "4.7", time: "25–35 min", description: "Sabores italianos y recetas de la casa." },
-      { id: "verde-limon", name: "Verde Limón", category: "Saludable", icon: "🥗", rating: "4.9", time: "15–25 min", description: "Opciones frescas para todos los días." }
-    ];
     const favoriteIds = new Set(["burger", "pizza", "salad", "ramen"]);
     const cart = new Map();
     let isAuthenticated = false;
@@ -25,7 +20,6 @@
     const searchResults = document.querySelector("#search-results");
     const drawer = document.querySelector("#cart-drawer");
     const backdrop = document.querySelector("#drawer-backdrop");
-    const restaurantMenu = document.querySelector("#restaurant-menu");
 
     function escapeHTML(value) {
       return String(value ?? "").replace(/[&<>"']/g, character => ({
@@ -56,28 +50,6 @@
         : '<p class="empty-state">No encontramos platos con esa búsqueda. Prueba con otra palabra o categoría.</p>';
     }
 
-    function renderRestaurants() {
-      const query = search.value.trim().toLocaleLowerCase("es");
-      const visible = restaurants.filter(restaurant => !query || `${restaurant.name} ${restaurant.category}`.toLocaleLowerCase("es").includes(query));
-      document.querySelector("#restaurant-grid").innerHTML = visible.length ? visible.map(restaurant => `
-        <article class="restaurant-card"><span class="restaurant-icon" aria-hidden="true">${escapeHTML(restaurant.icon)}</span><div class="restaurant-copy"><h3>${escapeHTML(restaurant.name)}</h3><p><span class="rating">★ ${escapeHTML(restaurant.rating)}</span> · ${escapeHTML(restaurant.category)} · ${escapeHTML(restaurant.time)}</p><button class="restaurant-menu-link" type="button" data-open-restaurant="${escapeHTML(restaurant.id)}">Ver menú <span aria-hidden="true">→</span></button></div></article>`).join("")
-        : '<p class="empty-state">No encontramos restaurantes con esa búsqueda.</p>';
-    }
-
-    function renderRestaurantMenu(restaurantId) {
-      const restaurant = restaurants.find(item => item.id === restaurantId);
-      if (!restaurant) return;
-      const menuDishes = dishes.filter(dish => dish.restaurantId === restaurant.id);
-      document.querySelector("#restaurant-menu-title").textContent = restaurant.name;
-      document.querySelector("#restaurant-menu-description").textContent =
-        `${restaurant.description || restaurant.category} · ${restaurant.time} · ★ ${restaurant.rating}`;
-      document.querySelector("#restaurant-dish-grid").innerHTML = menuDishes.length
-        ? renderDishCards(menuDishes)
-        : '<p class="empty-state">Este restaurante aún no tiene platos disponibles.</p>';
-      restaurantMenu.hidden = false;
-      restaurantMenu.scrollIntoView({ behavior: "smooth" });
-    }
-
     function updateOrderButtons() {
       document.querySelectorAll("[data-add]").forEach(button => {
         const available = dishes.some(dish => dish.id === button.dataset.add);
@@ -89,102 +61,6 @@
           : isAuthenticated ? `Añadir ${productName} al carrito` : `Inicia sesión para pedir ${productName}`);
         button.title = !available ? "Producto no disponible" : isAuthenticated ? "Añadir al carrito" : "Inicia sesión para pedir";
       });
-    }
-
-    function normalizeCollection(payload, collectionName) {
-      const records = Array.isArray(payload) ? payload : payload?.data;
-      if (!Array.isArray(records)) {
-        throw new Error(`La respuesta de ${collectionName} debe ser una lista de registros.`);
-      }
-      return records;
-    }
-
-    function normalizeRestaurant(record) {
-      if (!record || (typeof record.id !== "string" && typeof record.id !== "number") || !record.name) {
-        throw new Error("Un restaurante recibido no contiene un id y un nombre válidos.");
-      }
-      return {
-        id: String(record.id),
-        name: String(record.name),
-        category: String(record.category || "Restaurante"),
-        icon: String(record.icon || "🍽️"),
-        rating: String(record.rating ?? "Nuevo"),
-        time: String(record.time || record.deliveryTime || "Consultar tiempo"),
-        description: String(record.description || "")
-      };
-    }
-
-    function normalizeDish(record) {
-      const price = Number(record?.price);
-      if (!record || (typeof record.id !== "string" && typeof record.id !== "number") ||
-          (typeof record.restaurantId !== "string" && typeof record.restaurantId !== "number") ||
-          !record.name || !Number.isFinite(price) || price < 0) {
-        throw new Error("Un plato recibido no contiene id, restaurantId, nombre y precio válidos.");
-      }
-      return {
-        id: String(record.id),
-        restaurantId: String(record.restaurantId),
-        name: String(record.name),
-        category: String(record.category || "Otros"),
-        description: String(record.description || ""),
-        price,
-        image: String(record.image || ""),
-        alt: String(record.alt || record.name)
-      };
-    }
-
-    async function loadCloudCatalog() {
-      const apiBase = document.querySelector('meta[name="saborcito-api-base-url"]')?.content.trim();
-      if (!apiBase) return;
-
-      const sourceNote = document.querySelector("#catalog-source-note");
-      sourceNote.textContent = "Cargando restaurantes y platos...";
-      restaurants = [];
-      dishes = [];
-      renderRestaurants();
-      renderDishes();
-
-      let baseUrl;
-      try {
-        baseUrl = new URL(apiBase);
-      } catch {
-        throw new Error("La URL base de la API debe ser una URL absoluta.");
-      }
-      if (baseUrl.protocol !== "https:" &&
-          !(baseUrl.protocol === "http:" && ["localhost", "127.0.0.1"].includes(baseUrl.hostname))) {
-        throw new Error("La API debe usar HTTPS (HTTP solo está permitido en localhost).");
-      }
-      const base = apiBase.replace(/\/+$/, "");
-      const [restaurantResponse, dishResponse] = await Promise.all([
-        fetch(`${base}/restaurants`, { headers: { Accept: "application/json" } }),
-        fetch(`${base}/dishes`, { headers: { Accept: "application/json" } })
-      ]);
-      if (!restaurantResponse.ok || !dishResponse.ok) {
-        throw new Error(`La API del catálogo respondió con HTTP ${restaurantResponse.status} (restaurantes) y HTTP ${dishResponse.status} (platos).`);
-      }
-
-      const [restaurantPayload, dishPayload] = await Promise.all([
-        restaurantResponse.json(),
-        dishResponse.json()
-      ]);
-      const nextRestaurants = normalizeCollection(restaurantPayload, "restaurantes").map(normalizeRestaurant);
-      const nextDishes = normalizeCollection(dishPayload, "platos").map(normalizeDish);
-      const restaurantIds = new Set(nextRestaurants.map(restaurant => restaurant.id));
-      if (nextDishes.some(dish => !restaurantIds.has(dish.restaurantId))) {
-        throw new Error("La API devolvió platos vinculados a restaurantes que no existen en la colección recibida.");
-      }
-
-      restaurants = nextRestaurants;
-      dishes = nextDishes;
-      for (const dishId of cart.keys()) {
-        if (!dishes.some(dish => dish.id === dishId)) cart.delete(dishId);
-      }
-      sourceNote.hidden = true;
-      renderRestaurants();
-      renderDishes();
-      updateOrderButtons();
-      updateCart();
-      if (!restaurantMenu.hidden) restaurantMenu.hidden = true;
     }
 
     function showNotice(message) {
@@ -199,9 +75,7 @@
       const query = search.value.trim().toLocaleLowerCase("es");
       if (!query) { searchResults.hidden = true; return; }
       const results = dishes.filter(dish => `${dish.name} ${dish.category} ${dish.description}`.toLocaleLowerCase("es").includes(query));
-      const restaurantMatches = restaurants.filter(restaurant => `${restaurant.name} ${restaurant.category}`.toLocaleLowerCase("es").includes(query));
       const suggestions = [
-        ...restaurantMatches.map(restaurant => `<button class="search-result" type="button" role="option" data-select-restaurant="${escapeHTML(restaurant.name)}"><strong>${escapeHTML(restaurant.name)}</strong><span> · Restaurante</span></button>`),
         ...results.map(dish => `<button class="search-result" type="button" role="option" data-select-dish="${escapeHTML(dish.id)}"><strong>${escapeHTML(dish.name)}</strong><span> · Platillo</span></button>`)
       ];
       searchResults.innerHTML = suggestions.length ? suggestions.join("") : '<div class="search-result" role="option">Sin coincidencias. Prueba otro término.</div>';
@@ -315,17 +189,8 @@
           document.querySelector("#favoritos").scrollIntoView({ behavior: "smooth" });
         }
       }
-      if (target.dataset.selectRestaurant) {
-        search.value = target.dataset.selectRestaurant;
-        searchResults.hidden = true;
-        restaurantMenu.hidden = true;
-        renderDishes();
-        renderRestaurants();
-        document.querySelector("#restaurantes").scrollIntoView({ behavior: "smooth" });
-      }
-      if (target.dataset.openRestaurant) renderRestaurantMenu(target.dataset.openRestaurant);
     });
-    search.addEventListener("input", () => { renderSearchResults(); renderDishes(); renderRestaurants(); });
+    search.addEventListener("input", () => { renderSearchResults(); renderDishes(); });
     search.addEventListener("keydown", event => {
       if (event.key === "Escape") searchResults.hidden = true;
       if (event.key === "ArrowDown" && !searchResults.hidden) {
@@ -337,10 +202,6 @@
       if (event.key === "Escape") { searchResults.hidden = true; search.focus(); }
     });
     document.querySelector("#cart-button").addEventListener("click", openCart);
-    document.querySelector("#restaurant-menu-back").addEventListener("click", () => {
-      restaurantMenu.hidden = true;
-      document.querySelector("#restaurantes").scrollIntoView({ behavior: "smooth" });
-    });
     document.querySelector("#account-link").addEventListener("click", async event => {
       if (!isAuthenticated) return;
       event.preventDefault();
@@ -381,16 +242,8 @@
       showNotice(cart.size ? "¡Gracias! El proceso de pago estará disponible muy pronto." : "Añade algo delicioso a tu carrito para continuar.");
     });
     renderDishes();
-    renderRestaurants();
     updateOrderButtons();
     updateCart();
-    loadCloudCatalog().catch(error => {
-      const sourceNote = document.querySelector("#catalog-source-note");
-      sourceNote.hidden = false;
-      sourceNote.textContent = `No se pudo cargar el catálogo cloud: ${error.message}`;
-      document.querySelector("#restaurant-grid").innerHTML = '<p class="empty-state">No se pudieron cargar los restaurantes. Intenta de nuevo más tarde.</p>';
-      foodGrid.innerHTML = '<p class="empty-state">No se pudieron cargar los platos.</p>';
-    });
     fetch("/api/session")
       .then(response => {
         if (!response.ok) throw new Error("No se pudo verificar la sesión.");
