@@ -215,26 +215,31 @@ async function loadCloudCatalog() {
 }
 
 search.addEventListener("input", renderMenu);
-loadCloudCatalog().catch(error => {
-  detailSection.hidden = true;
-  if (directorySection) directorySection.hidden = true;
-  sourceNote.hidden = true;
-  catalogError.hidden = false;
-  document.querySelector("#catalog-error-message").textContent = error.message;
-});
 
 try {
-  const accountLink = document.querySelector("#restaurant-account-link");
   const savedUser = JSON.parse(localStorage.getItem("saborcito_user") || "null");
-  if (accountLink && savedUser && savedUser.name) {
-    accountLink.textContent = `👤 ${savedUser.name} · Salir`;
-    accountLink.href = "#";
-    accountLink.addEventListener("click", event => {
-      event.preventDefault();
-      localStorage.removeItem("saborcito_user");
-      window.location.reload();
+  if (!savedUser || !savedUser.email) {
+    window.location.replace("auth.html");
+  } else {
+    const accountLink = document.querySelector("#restaurant-account-link");
+    if (accountLink && savedUser.name) {
+      accountLink.textContent = `👤 ${savedUser.name} · Salir`;
+      accountLink.href = "#";
+      accountLink.addEventListener("click", event => {
+        event.preventDefault();
+        localStorage.removeItem("saborcito_user");
+        window.location.replace("auth.html");
+      });
+    }
+    loadCloudCatalog().catch(error => {
+      detailSection.hidden = true;
+      if (directorySection) directorySection.hidden = true;
+      sourceNote.hidden = true;
+      catalogError.hidden = false;
+      document.querySelector("#catalog-error-message").textContent = error.message;
     });
   }
 } catch {
   localStorage.removeItem("saborcito_user");
+  window.location.replace("auth.html");
 }

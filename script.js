@@ -109,6 +109,9 @@
       accountLink.textContent = isAuthenticated ? `👤 ${user.name} · Salir` : "👤 Entrar";
       accountLink.href = isAuthenticated ? "#" : "auth.html";
       accountLink.setAttribute("aria-label", isAuthenticated ? `Cerrar sesión de ${user.name}` : "Iniciar sesión");
+      document.querySelectorAll("[data-restaurant-link]").forEach(link => {
+        link.href = isAuthenticated ? "restaurants.html" : "auth.html";
+      });
       renderDishes();
       updateCart();
     }
