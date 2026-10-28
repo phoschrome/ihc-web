@@ -4,32 +4,36 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#FFB03B">
-  <meta name="description" content="Descubre las promociones exclusivas y el menú de tu restaurante favorito en Saborcito.">
+  <meta name="description" content="Descubre el menú y tus últimos pedidos de tu restaurante favorito en Saborcito.">
   <meta name="saborcito-api-base-url" content="https://gd384485b9fe421-ecommerce.adb.sa-bogota-1.oraclecloudapps.com/ords/admin/v1">
   <title>Menú — Saborcito</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="restaurant-page">
   <a class="skip-link" href="#restaurant-content">Saltar al contenido principal</a>
-  <header class="topbar restaurant-topbar">
+  <header class="topbar">
     <a class="brand" href="index.html" aria-label="Saborcito, inicio">
       <span class="brand-mark" aria-hidden="true">🍊</span><span>Saborcito</span>
     </a>
-    <nav class="restaurant-nav" aria-label="Navegación">
-      <a class="text-link" href="index.html">Inicio</a>
-      <a class="icon-button" id="restaurant-account-link" href="auth.html" aria-label="Iniciar sesión">👤 <span>Entrar</span></a>
+    <div class="search-wrap">
+      <label class="search-box" for="search">
+        <span aria-hidden="true">⌕</span>
+        <input id="search" type="search" autocomplete="off" placeholder="Busca restaurantes o platillos" aria-label="Buscar restaurantes o comidas" aria-controls="search-results">
+        <span class="sr-only">Busca por coincidencia en restaurantes y comidas</span>
+      </label>
+      <div class="search-results" id="search-results" role="listbox" aria-label="Sugerencias de búsqueda" hidden></div>
+    </div>
+    <nav class="header-actions" aria-label="Acciones de cuenta y pedido">
+      <a class="icon-button" id="account-link" href="auth.html" aria-label="Iniciar sesión">👤 <span>Entrar</span></a>
+      <button class="icon-button" type="button" id="cart-button" aria-label="Inicia sesión para acceder al carrito" title="Inicia sesión para acceder al carrito" disabled>🛒 <span>Carrito</span><span class="cart-count" id="cart-count" aria-hidden="true">0</span></button>
     </nav>
   </header>
 
   <main class="restaurant-main" id="restaurant-content">
-    <section class="restaurant-page-intro" aria-labelledby="restaurant-page-title">
+    <section class="restaurant-page-intro" id="restaurant-page-intro" aria-labelledby="restaurant-page-title" hidden>
       <span class="eyebrow">Un menú para ti</span>
-      <h1 id="restaurant-page-title">Descubre el menú</h1>
-      <p id="restaurant-page-subtitle">Explora los platillos y promociones exclusivas de este restaurante.</p>
-      <label class="restaurant-search" for="restaurant-search">
-        <span aria-hidden="true">⌕</span>
-        <input id="restaurant-search" type="search" autocomplete="off" placeholder="Busca un platillo o categoría" aria-label="Buscar platillos o categorías" disabled>
-      </label>
+      <h1 id="restaurant-page-title">Restaurantes disponibles</h1>
+      <p id="restaurant-page-subtitle">Selecciona un restaurante para ver su pantalla plantilla.</p>
     </section>
 
     <p class="catalog-source-note" id="catalog-source-note" role="status">Conectando con el catálogo...</p>
@@ -45,23 +49,44 @@
     </section>
 
     <section class="restaurant-detail-section" id="restaurant-detail-section" aria-labelledby="restaurant-detail-title" hidden>
-      <header class="restaurant-detail-header">
-        <span class="restaurant-detail-icon" id="restaurant-detail-icon" aria-hidden="true">🍽️</span>
-        <div>
-          <p class="offer-tag" id="restaurant-detail-category"></p>
-          <h2 id="restaurant-detail-title">Menú del restaurante</h2>
-          <p id="restaurant-detail-description"></p>
-          <span class="rating" id="restaurant-detail-meta"></span>
+      <!-- 1. Banner del restaurante -->
+      <div class="restaurant-banner" id="restaurant-banner">
+        <span class="restaurant-banner-label" id="restaurant-banner-label">Banner del restaurante</span>
+      </div>
+
+      <!-- 2. Cabecera con Logo circular, Nombre + Estrellas y Botón de Guardar (Bookmark) -->
+      <header class="restaurant-identity-bar">
+        <div class="restaurant-identity-main">
+          <div class="restaurant-logo-circle" id="restaurant-detail-icon" aria-hidden="true">Logo</div>
+          <div class="restaurant-title-block">
+            <p class="offer-tag" id="restaurant-detail-category"></p>
+            <h1 id="restaurant-detail-title">Nombre restaurante</h1>
+            <div class="restaurant-stars-row">
+              <span class="restaurant-stars" id="restaurant-detail-stars" aria-hidden="true">★ ★ ★ ★ ★</span>
+              <span class="rating" id="restaurant-detail-meta"></span>
+            </div>
+            <p class="restaurant-address-note" id="restaurant-detail-description"></p>
+          </div>
         </div>
+        <button class="bookmark-button" id="restaurant-bookmark" type="button" aria-pressed="false" aria-label="Guardar restaurante en favoritos" title="Guardar restaurante">
+          <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </button>
       </header>
-      <section class="restaurant-promotions-section" id="restaurant-promotions-section" aria-labelledby="restaurant-promotions-title" hidden>
-        <div class="section-heading">
-          <div><h3 id="restaurant-promotions-title">Promociones exclusivas</h3><p>Ofertas especiales de este restaurante.</p></div>
-        </div>
-        <div class="food-grid" id="restaurant-promotions-grid" aria-live="polite"></div>
+
+      <!-- 3. Sección Últimos pedidos (solo se muestra si el usuario ha pedido en este restaurante) -->
+      <section class="restaurant-recent-section" id="restaurant-recent-section" aria-labelledby="restaurant-recent-title" hidden>
+        <h2 class="recent-orders-heading" id="restaurant-recent-title">Últimos pedidos</h2>
+        <div class="recent-orders-grid" id="restaurant-recent-grid" aria-live="polite"></div>
       </section>
-      <div class="section-heading">
-        <div><h2 id="menu-title">Menú</h2><p id="menu-description"></p></div>
+
+      <!-- 4. Menú completo del restaurante -->
+      <div class="section-heading restaurant-menu-header">
+        <div>
+          <h2 id="menu-title">Menú</h2>
+          <p id="menu-description"></p>
+        </div>
       </div>
       <div id="restaurant-menu-sections" aria-live="polite"></div>
     </section>
@@ -71,6 +96,15 @@
       <p id="catalog-error-message"></p>
     </section>
   </main>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+  <aside class="cart-drawer" id="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title" hidden>
+    <div class="drawer-header"><h2 id="cart-title">Tu carrito</h2><button class="close-button" id="close-cart" type="button" aria-label="Cerrar carrito">×</button></div>
+    <div class="cart-items" id="cart-items"><p class="empty-state">Tu carrito está vacío. ¡Elige algo delicioso!</p></div>
+    <div class="cart-total"><span>Total</span><span id="cart-total">$0</span></div>
+    <button class="primary-button checkout-button" id="checkout-button" type="button">Realizar pedido</button>
+  </aside>
+  <div class="notice" id="notice" role="status" aria-live="polite" hidden></div>
 
   <footer class="auth-footer restaurant-footer">© 2026 Saborcito · Hecho para disfrutar cada bocado.</footer>
   <script src="restaurants.js" defer></script>
