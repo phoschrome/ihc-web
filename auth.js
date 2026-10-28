@@ -61,25 +61,38 @@ form.addEventListener("submit", async event => {
   }
 
   const submitButton = document.querySelector("#submit-button");
+  const nameValue = fullName.value.trim();
+  const emailValue = document.querySelector("#email").value.trim().toLowerCase();
+  const passwordValue = password.value;
+
   submitButton.disabled = true;
-  feedback.textContent = mode === "register" ? "Creando tu cuenta en Oracle Cloud..." : "Verificando tus datos en Oracle Cloud...";
+  feedback.textContent = mode === "register" ? "Creando tu cuenta..." : "Verificando tus datos...";
+
   try {
     const endpoint = apiBase
       ? `${apiBase}/${mode === "register" ? "register" : "login"}`
       : `/api/${mode === "register" ? "register" : "login"}`;
 
-    const response = await fetch(endpoint, {
+    const payloadBody = JSON.stringify({
+      name: nameValue,
+      email: emailValue,
+      password: passwordValue
+    });
+    let response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=UTF-8" },
-      body: JSON.stringify({
-        name: fullName.value.trim(),
-        email: document.querySelector("#email").value.trim().toLowerCase(),
-        password: password.value
-      })
+      body: payloadBody
     });
-    if (response.status === 404) {
-      throw new Error("El endpoint de usuarios aún no está publicado en Oracle Cloud. Ejecuta el bloque SQL de usuarios.");
+
+    if (response.status >= 500) {
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=UTF-8" },
+        body: payloadBody
+      });
     }
+
     let result;
     try {
       result = await response.json();
@@ -89,14 +102,13 @@ form.addEventListener("submit", async event => {
     if (!response.ok || result.ok === false) {
       throw new Error(result.error || "No se pudo completar el acceso.");
     }
-    if (result.user) {
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(result.user));
+    if (!result.user || !result.user.email) {
+      throw new Error("El servicio de autenticación no devolvió un usuario válido.");
     }
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(result.user));
     window.location.replace("index.html");
   } catch (error) {
-    feedback.textContent = error instanceof TypeError
-      ? "No se pudo conectar con Oracle Cloud. Verifica tu conexión o el bloque ORDS de usuarios."
-      : error.message;
+    feedback.textContent = error.message || "No se pudo completar el acceso.";
   } finally {
     submitButton.disabled = false;
   }
@@ -109,6 +121,9 @@ try {
   const savedUser = JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) || "null");
   if (savedUser && savedUser.email) {
     window.location.replace("index.html");
+  } else if (apiBase) {
+    // Ping silencioso al abrir auth.html para despertar el pool de Oracle Cloud mientras el usuario escribe
+    fetch(`${apiBase}/restaurants`, { method: "GET", headers: { Accept: "application/json" } }).catch(() => {});
   }
 } catch {
   localStorage.removeItem(SESSION_STORAGE_KEY);

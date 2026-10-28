@@ -1,22 +1,37 @@
-    let dishes = [
-      { id: "burger", restaurantId: "la-burgeria", name: "La clásica smash", category: "Hamburguesas", description: "Doble carne, queso cheddar y salsa de la casa.", price: 189, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=700&q=80", alt: "Hamburguesa con queso, lechuga y tomate" },
-      { id: "pizza", restaurantId: "forno-amore", name: "Pizza margarita", category: "Pizza", description: "Tomate, mozzarella fresca y albahaca.", price: 220, image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=700&q=80", alt: "Pizza margarita recién horneada" },
-      { id: "salad", restaurantId: "verde-limon", name: "Bowl arcoíris", category: "Saludable", description: "Quinoa, aguacate y vegetales de temporada.", price: 165, image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=700&q=80", alt: "Bowl de ensalada colorida con vegetales" },
-      { id: "ramen", restaurantId: "forno-amore", name: "Ramen de la casa", category: "Asiática", description: "Caldo lento, fideos y toppings frescos.", price: 198, image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=700&q=80", alt: "Tazón de ramen con fideos y huevo" }
+    const SEED_RESTAURANTS = [
+      { id: "1", name: "Pizzería Roma", category: "Pizza", icon: "🍕", rating: 4.8, time: "20–30 min", description: "Dirección: Av. Principal 101" },
+      { id: "2", name: "Burger King", category: "Hamburguesas", icon: "🍔", rating: 4.8, time: "20–30 min", description: "Dirección: Mall Central L-20" },
+      { id: "3", name: "Sushi Zen", category: "Asiática", icon: "🍣", rating: 4.8, time: "20–30 min", description: "Dirección: Calle del Río 45" },
+      { id: "4", name: "Tacos El Loco", category: "Mexicana", icon: "🌮", rating: 4.8, time: "20–30 min", description: "Dirección: Plaza Sur Local 5" },
+      { id: "5", name: "KFC", category: "Pollo", icon: "🍗", rating: 4.8, time: "20–30 min", description: "Dirección: Av. Naciones Unidas 1023" },
+      { id: "6", name: "Wok Express", category: "Asiática", icon: "🥡", rating: 4.8, time: "20–30 min", description: "Dirección: Patio de Comidas Centro" },
+      { id: "7", name: "Veggie Life", category: "Saludable", icon: "🥗", rating: 4.8, time: "20–30 min", description: "Dirección: Calle Verde 99" },
+      { id: "8", name: "Sweet Bakery", category: "Postres", icon: "🥐", rating: 4.8, time: "20–30 min", description: "Dirección: Av. Las Flores 21" },
+      { id: "9", name: "Texas Steakhouse", category: "Carnes", icon: "🥩", rating: 4.8, time: "20–30 min", description: "Dirección: Boulevard Norte 500" },
+      { id: "10", name: "Gelato Mio", category: "Postres", icon: "🍨", rating: 4.8, time: "20–30 min", description: "Dirección: Plaza Mayor Local 12" }
     ];
+
+    let dishes = [
+      { id: "burger", restaurantId: "2", name: "La clásica smash", category: "Hamburguesas", description: "Doble carne, queso cheddar y salsa de la casa.", price: 189, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=700&q=80", alt: "Hamburguesa con queso, lechuga y tomate" },
+      { id: "pizza", restaurantId: "1", name: "Pizza margarita", category: "Pizza", description: "Tomate, mozzarella fresca y albahaca.", price: 220, image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=700&q=80", alt: "Pizza margarita recién horneada" },
+      { id: "salad", restaurantId: "7", name: "Bowl arcoíris", category: "Saludable", description: "Quinoa, aguacate y vegetales de temporada.", price: 165, image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=700&q=80", alt: "Bowl de ensalada colorida con vegetales" },
+      { id: "ramen", restaurantId: "6", name: "Ramen de la casa", category: "Asiática", description: "Caldo lento, fideos y toppings frescos.", price: 198, image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=700&q=80", alt: "Tazón de ramen con fideos y huevo" }
+    ];
+
     const promos = [
       { eyebrow: "✨ Lo bueno se comparte", title: "Tu antojo favorito, a un clic", description: "Disfruta tus platos favoritos. Hoy tienes envío gratis en tu primer pedido.", tag: "ENVÍO GRATIS", food: "🍔" },
       { eyebrow: "🎉 Novedad de la semana", title: "Un festín para tus sentidos", description: "Descubre nuevos sabores y encuentra tu próximo plato favorito.", tag: "2X1 EN PIZZAS", food: "🍕" },
       { eyebrow: "🌱 Fresco y delicioso", title: "Dale color a tu día", description: "Opciones frescas y deliciosas, preparadas especialmente para ti.", tag: "DESDE $99", food: "🥗" }
     ];
-    const favoriteIds = new Set(["burger", "pizza", "salad", "ramen"]);
+
     const cart = new Map();
     const SESSION_STORAGE_KEY = "saborcito_user";
+    const CATALOG_CACHE_KEY = "saborcito_catalog_cache_v1";
+    let currentUser = null;
     let isAuthenticated = false;
-    let filter = "Todos";
     let promoIndex = 0;
     let noticeTimer;
-    const foodGrid = document.querySelector("#food-grid");
+    const favoritesGrid = document.querySelector("#favorites-grid");
     const search = document.querySelector("#search");
     const searchResults = document.querySelector("#search-results");
     const drawer = document.querySelector("#cart-drawer");
@@ -32,23 +47,68 @@
       })[character]);
     }
 
-    function renderDishCards(items) {
-      return items.map(dish => `
-        <article class="food-card">
-          <div class="food-image">${dish.image ? `<img src="${escapeHTML(dish.image)}" alt="${escapeHTML(dish.alt)}" loading="lazy">` : '<span class="food-image-placeholder" aria-hidden="true">🍽️</span>'}<button class="heart-button" type="button" data-favorite="${escapeHTML(dish.id)}" aria-pressed="${favoriteIds.has(dish.id)}" aria-label="${favoriteIds.has(dish.id) ? "Quitar" : "Añadir"} ${escapeHTML(dish.name)} ${favoriteIds.has(dish.id) ? "de" : "a"} favoritos" ${isAuthenticated ? "" : "disabled"}>${favoriteIds.has(dish.id) ? "♥" : "♡"}</button></div>
-          <div class="food-info"><h3 class="food-name">${escapeHTML(dish.name)}</h3><p class="food-description">${escapeHTML(dish.description)}</p><div class="food-bottom"><span class="price">$${escapeHTML(dish.price)}</span><button class="add-button" type="button" data-add="${escapeHTML(dish.id)}" aria-label="Inicia sesión para añadir ${escapeHTML(dish.name)} al carrito" title="Inicia sesión para añadir al carrito" ${isAuthenticated ? "" : "disabled"}>+</button></div></div>
-        </article>`).join("");
+    function getUserKey() {
+      return currentUser?.id || currentUser?.email || "anon";
     }
 
-    function renderDishes() {
+    function getSavedBookmarksKey() {
+      return `saborcito_bookmarks_${getUserKey()}`;
+    }
+
+    function getCatalogRestaurants() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) || "null");
+        if (cached && Array.isArray(cached.restaurants) && cached.restaurants.length > 0) {
+          return cached.restaurants;
+        }
+      } catch {
+        // ignore cache parse errors
+      }
+      return SEED_RESTAURANTS;
+    }
+
+    function getBookmarkedRestaurantIds() {
+      if (!isAuthenticated) return new Set();
+      try {
+        const saved = JSON.parse(localStorage.getItem(getSavedBookmarksKey()) || "[]");
+        return new Set(Array.isArray(saved) ? saved.map(String) : []);
+      } catch {
+        return new Set();
+      }
+    }
+
+    function renderFavoriteRestaurants() {
+      if (!favoritesGrid) return;
+      const bookmarkedIds = getBookmarkedRestaurantIds();
+      const allRestaurants = getCatalogRestaurants();
       const query = search.value.trim().toLocaleLowerCase("es");
-      const visible = dishes.filter(dish =>
-        (filter === "Todos" || dish.category === filter) &&
-        (!query || `${dish.name} ${dish.category} ${dish.description}`.toLocaleLowerCase("es").includes(query))
+
+      const favoriteRestaurants = allRestaurants.filter(r =>
+        bookmarkedIds.has(String(r.id)) &&
+        (!query || `${r.name} ${r.category} ${r.description}`.toLocaleLowerCase("es").includes(query))
       );
-      foodGrid.innerHTML = visible.length
-        ? renderDishCards(visible)
-        : '<p class="empty-state">No encontramos platos con esa búsqueda. Prueba con otra palabra o categoría.</p>';
+
+      if (bookmarkedIds.size === 0) {
+        favoritesGrid.innerHTML = '<p class="empty-state">No cuentas con favoritos aún. Entra a cualquier restaurante y pulsa el ícono de guardado para verlo aquí.</p>';
+        return;
+      }
+
+      if (favoriteRestaurants.length === 0) {
+        favoritesGrid.innerHTML = '<p class="empty-state">Ninguno de tus restaurantes favoritos coincide con esa búsqueda.</p>';
+        return;
+      }
+
+      favoritesGrid.innerHTML = favoriteRestaurants.map(r => `
+        <article class="restaurant-card">
+          <span class="restaurant-icon" aria-hidden="true">${escapeHTML(r.icon)}</span>
+          <div class="restaurant-copy">
+            <span class="offer-tag">${escapeHTML(r.category)}</span>
+            <h3>${escapeHTML(r.name)}</h3>
+            <p>${escapeHTML(r.description)}</p>
+            <p class="rating">★ ${escapeHTML(r.rating)} · ${escapeHTML(r.time)}</p>
+            <a class="restaurant-menu-link" href="restaurants.html?restaurant=${encodeURIComponent(r.id)}">Ver menú →</a>
+          </div>
+        </article>`).join("");
     }
 
     function updateOrderButtons() {
@@ -75,9 +135,16 @@
     function renderSearchResults() {
       const query = search.value.trim().toLocaleLowerCase("es");
       if (!query) { searchResults.hidden = true; return; }
-      const results = dishes.filter(dish => `${dish.name} ${dish.category} ${dish.description}`.toLocaleLowerCase("es").includes(query));
+      const allRestaurants = getCatalogRestaurants();
+      const matchedRestaurants = allRestaurants.filter(r =>
+        `${r.name} ${r.category} ${r.description}`.toLocaleLowerCase("es").includes(query)
+      );
+      const matchedDishes = dishes.filter(dish =>
+        `${dish.name} ${dish.category} ${dish.description}`.toLocaleLowerCase("es").includes(query)
+      );
       const suggestions = [
-        ...results.map(dish => `<button class="search-result" type="button" role="option" data-select-dish="${escapeHTML(dish.id)}"><strong>${escapeHTML(dish.name)}</strong><span> · Platillo</span></button>`)
+        ...matchedRestaurants.map(r => `<button class="search-result" type="button" role="option" data-select-restaurant="${escapeHTML(r.id)}"><strong>${escapeHTML(r.icon)} ${escapeHTML(r.name)}</strong><span> · Restaurante</span></button>`),
+        ...matchedDishes.map(dish => `<button class="search-result" type="button" role="option" data-select-dish="${escapeHTML(dish.id)}"><strong>${escapeHTML(dish.name)}</strong><span> · Oferta</span></button>`)
       ];
       searchResults.innerHTML = suggestions.length ? suggestions.join("") : '<div class="search-result" role="option">Sin coincidencias. Prueba otro término.</div>';
       searchResults.hidden = false;
@@ -88,15 +155,39 @@
       const count = items.reduce((sum, [, quantity]) => sum + quantity, 0);
       document.querySelector("#cart-count").textContent = count;
       document.querySelector("#cart-button").setAttribute("aria-label", isAuthenticated ? `Abrir carrito, ${count} ${count === 1 ? "producto" : "productos"}` : "Inicia sesión para acceder al carrito");
-      const total = items.reduce((sum, [id, quantity]) => sum + dishes.find(dish => dish.id === id).price * quantity, 0);
+      const total = items.reduce((sum, [id, quantity]) => {
+        const dish = dishes.find(item => item.id === id);
+        return sum + (dish ? dish.price * quantity : 0);
+      }, 0);
       document.querySelector("#cart-total").textContent = `$${total}`;
       document.querySelector("#cart-items").innerHTML = items.length ? items.map(([id, quantity]) => {
         const dish = dishes.find(item => item.id === id);
+        if (!dish) return "";
         return `<div class="cart-item"><div><strong>${escapeHTML(dish.name)}</strong><p>$${escapeHTML(dish.price)} · Subtotal $${escapeHTML(dish.price * quantity)}</p></div><div class="quantity-controls"><button type="button" data-quantity="${escapeHTML(id)}" data-delta="-1" aria-label="Quitar una unidad de ${escapeHTML(dish.name)}">−</button><span aria-label="Cantidad">${quantity}</span><button type="button" data-quantity="${escapeHTML(id)}" data-delta="1" aria-label="Añadir una unidad de ${escapeHTML(dish.name)}">+</button></div></div>`;
       }).join("") : '<p class="empty-state">Tu carrito está vacío. ¡Elige algo delicioso!</p>';
     }
 
+    async function syncFavoritesFromCloud() {
+      const apiBase = (document.querySelector('meta[name="saborcito-api-base-url"]')?.content || "").trim().replace(/\/+$/, "");
+      if (!apiBase || !currentUser?.id) return;
+      try {
+        const response = await fetch(`${apiBase}/favorites?userId=${encodeURIComponent(currentUser.id)}`, {
+          headers: { Accept: "application/json" }
+        });
+        if (!response.ok) return;
+        const payload = await response.json();
+        const items = Array.isArray(payload) ? payload : (payload?.items ?? payload?.data);
+        if (!Array.isArray(items)) return;
+        const cloudIds = items.map(item => String(item.restaurantId ?? item.id_restaurante ?? item.id)).filter(Boolean);
+        localStorage.setItem(getSavedBookmarksKey(), JSON.stringify([...new Set(cloudIds)]));
+        renderFavoriteRestaurants();
+      } catch {
+        // Si Oracle Cloud está en pausa, mantiene la copia en caché local
+      }
+    }
+
     function updateAuthentication(user) {
+      currentUser = user || null;
       isAuthenticated = Boolean(user);
       const accountLink = document.querySelector("#account-link");
       const cartButton = document.querySelector("#cart-button");
@@ -112,7 +203,10 @@
       document.querySelectorAll("[data-restaurant-link]").forEach(link => {
         link.href = isAuthenticated ? "restaurants.html" : "auth.html";
       });
-      renderDishes();
+      renderFavoriteRestaurants();
+      if (isAuthenticated) {
+        syncFavoritesFromCloud();
+      }
       updateCart();
     }
 
@@ -156,17 +250,6 @@
         updateCart();
         showNotice(`${dish.name} se añadió al carrito.`);
       }
-      if (target.dataset.favorite) {
-        const dish = dishes.find(item => item.id === target.dataset.favorite);
-        if (favoriteIds.has(dish.id)) {
-          favoriteIds.delete(dish.id);
-          showNotice(`${dish.name} se quitó de tus favoritos.`);
-        } else {
-          favoriteIds.add(dish.id);
-          showNotice(`${dish.name} se añadió a tus favoritos.`);
-        }
-        renderDishes();
-      }
       if (target.dataset.quantity) {
         if (!isAuthenticated) return;
         const next = (cart.get(target.dataset.quantity) || 0) + Number(target.dataset.delta);
@@ -174,23 +257,24 @@
         else cart.set(target.dataset.quantity, next);
         updateCart();
       }
-      if (target.dataset.filter) {
-        filter = target.dataset.filter;
-        document.querySelectorAll(".filter-button").forEach(button => button.setAttribute("aria-pressed", String(button === target)));
-        renderDishes();
+      if (target.dataset.selectRestaurant) {
+        searchResults.hidden = true;
+        window.location.href = isAuthenticated
+          ? `restaurants.html?restaurant=${encodeURIComponent(target.dataset.selectRestaurant)}`
+          : "auth.html";
       }
       if (target.dataset.selectDish) {
         const dish = dishes.find(item => item.id === target.dataset.selectDish);
         if (!dish) return;
-        search.value = dish.name;
         searchResults.hidden = true;
-        filter = "Todos";
-        document.querySelectorAll(".filter-button").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.filter === "Todos")));
-        renderDishes();
-        document.querySelector("#favoritos").scrollIntoView({ behavior: "smooth" });
+        document.querySelector("#ofertas").scrollIntoView({ behavior: "smooth" });
       }
     });
-    search.addEventListener("input", () => { renderSearchResults(); renderDishes(); });
+
+    search.addEventListener("input", () => {
+      renderSearchResults();
+      renderFavoriteRestaurants();
+    });
     search.addEventListener("keydown", event => {
       if (event.key === "Escape") searchResults.hidden = true;
       if (event.key === "ArrowDown" && !searchResults.hidden) {
@@ -238,9 +322,6 @@
       }
       showNotice(cart.size ? "¡Gracias! El proceso de pago estará disponible muy pronto." : "Añade algo delicioso a tu carrito para continuar.");
     });
-    renderDishes();
-    updateOrderButtons();
-    updateCart();
 
     try {
       const savedUser = JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) || "null");

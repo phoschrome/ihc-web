@@ -417,51 +417,101 @@ async function loadCloudCatalog() {
   apiBaseUrl = apiBase.replace(/\/+$/, "");
 
   // 1. Renderizado instantáneo desde caché del navegador si existe (Stale-While-Revalidate como Uber Eats/Rappi)
+  const SEED_RESTAURANTS = [
+    { id: "1", name: "Pizzería Roma", category: "Pizza", icon: "🍕", rating: 4.8, time: "20–30 min", description: "Dirección: Av. Principal 101", logo: "", banner: "" },
+    { id: "2", name: "Burger King", category: "Hamburguesas", icon: "🍔", rating: 4.8, time: "20–30 min", description: "Dirección: Mall Central L-20", logo: "", banner: "" },
+    { id: "3", name: "Sushi Zen", category: "Asiática", icon: "🍣", rating: 4.8, time: "20–30 min", description: "Dirección: Calle del Río 45", logo: "", banner: "" },
+    { id: "4", name: "Tacos El Loco", category: "Mexicana", icon: "🌮", rating: 4.8, time: "20–30 min", description: "Dirección: Plaza Sur Local 5", logo: "", banner: "" },
+    { id: "5", name: "KFC", category: "Pollo", icon: "🍗", rating: 4.8, time: "20–30 min", description: "Dirección: Av. Naciones Unidas 1023", logo: "", banner: "" },
+    { id: "6", name: "Wok Express", category: "Asiática", icon: "🥡", rating: 4.8, time: "20–30 min", description: "Dirección: Patio de Comidas Centro", logo: "", banner: "" },
+    { id: "7", name: "Veggie Life", category: "Saludable", icon: "🥗", rating: 4.8, time: "20–30 min", description: "Dirección: Calle Verde 99", logo: "", banner: "" },
+    { id: "8", name: "Sweet Bakery", category: "Postres", icon: "🥐", rating: 4.8, time: "20–30 min", description: "Dirección: Av. Las Flores 21", logo: "", banner: "" },
+    { id: "9", name: "Texas Steakhouse", category: "Carnes", icon: "🥩", rating: 4.8, time: "20–30 min", description: "Dirección: Boulevard Norte 500", logo: "", banner: "" },
+    { id: "10", name: "Gelato Mio", category: "Postres", icon: "🍨", rating: 4.8, time: "20–30 min", description: "Dirección: Plaza Mayor Local 12", logo: "", banner: "" }
+  ];
+  const SEED_DISHES = [
+    [1,"1","Pizza Margherita",12.5],[2,"1","Pizza Pepperoni",14],[3,"1","Pizza Cuatro Quesos",15.5],[4,"1","Pizza Hawaiana",13],[5,"1","Calzone Clásico",11],[6,"1","Lasaña de Carne",10.5],[7,"1","Espagueti Carbonara",9.5],[8,"1","Pan de Ajo",4],[9,"1","Tiramisú",5.5],[10,"1","Gaseosa 1.5L",3],
+    [11,"2","Whopper Clásica",6.5],[12,"2","Whopper Doble",8.5],[13,"2","Cheeseburger",3.5],[14,"2","Chicken Royale",5.5],[15,"2","Nuggets (10 uds)",4.5],[16,"2","Papas Fritas Medianas",2.5],[17,"2","Papas Fritas Grandes",3.5],[18,"2","Aros de Cebolla",3],[19,"2","Helado Cono Clásico",1.5],[20,"2","Gaseosa Mediana",2],
+    [21,"3","California Roll",8],[22,"3","Spicy Tuna Roll",9.5],[23,"3","Dragon Roll",12],[24,"3","Nigiri de Salmón (2 pzas)",4.5],[25,"3","Sashimi Mixto",15],[26,"3","Sopa Miso",3],[27,"3","Edamame",4],[28,"3","Tempura de Camarón",10],[29,"3","Helado de Té Verde",4.5],[30,"3","Té Helado",2.5],
+    [31,"4","Taco al Pastor",2.5],[32,"4","Taco de Bistec",3],[33,"4","Taco de Carnitas",2.5],[34,"4","Burrito Mixto",7.5],[35,"4","Quesadilla con Carne",5],[36,"4","Nachos Supremos",8],[37,"4","Guacamole con Totopos",6],[38,"4","Enchiladas Rojas",7],[39,"4","Churros Rellenos",4],[40,"4","Agua de Horchata",2.5],
+    [41,"5","Combo 2 Piezas",6.5],[42,"5","Mega Bucket (8 pzas)",18],[43,"5","Zinger Burger",5.5],[44,"5","Popcorn Chicken",4.5],[45,"5","Hot Wings (6 pzas)",6],[46,"5","Papas Fritas Familiares",4],[47,"5","Puré de Papa con Gravy",3],[48,"5","Ensalada de Col",2.5],[49,"5","Postre Chocochip",2],[50,"5","Gaseosa Grande",2.5],
+    [51,"6","Arroz Frito Especial",7.5],[52,"6","Chow Mein de Pollo",8],[53,"6","Cerdo Agridulce",9],[54,"6","Pollo Kung Pao",9.5],[55,"6","Res con Brócoli",10],[56,"6","Rollitos de Primavera",4],[57,"6","Sopa Wonton",5],[58,"6","Dumplings al Vapor",6],[59,"6","Plátano Frito",3.5],[60,"6","Té de Jazmín",2],
+    [61,"7","Hamburguesa de Lentejas",7.5],[62,"7","Bowl de Quinoa y Tofu",9],[63,"7","Wrap de Falafel",8.5],[64,"7","Pizza Vegana (Queso de Almendras)",14],[65,"7","Ensalada Mediterránea",8],[66,"7","Hummus con Pan Pita",5.5],[67,"7","Chips de Camote",4],[68,"7","Brownie Sin Gluten",4.5],[69,"7","Batido Verde",5],[70,"7","Kombucha",4],
+    [71,"8","Croissant de Mantequilla",2.5],[72,"8","Muffin de Arándanos",3],[73,"8","Cheesecake de Fresa",5.5],[74,"8","Torta de Chocolate (Porción)",6],[75,"8","Galleta Chocochip Gigante",2],[76,"8","Macarons (Caja x6)",8],[77,"8","Donut Glaseada",1.5],[78,"8","Café Americano",2.5],[79,"8","Latte Macchiato",3.5],[80,"8","Frappuccino Moca",4.5],
+    [81,"9","Ribeye (300g)",24],[82,"9","T-Bone Steak",26],[83,"9","New York Strip",22],[84,"9","BBQ Ribs (Medio Costillar)",18],[85,"9","Hamburguesa Angus",12.5],[86,"9","Papa Horneada",4],[87,"9","Mac & Cheese",5],[88,"9","Espárragos a la Parrilla",6],[89,"9","Cheesecake Estilo NY",7],[90,"9","Cerveza Artesanal",5.5],
+    [91,"10","Gelato de Vainilla (1 Bola)",2.5],[92,"10","Gelato de Chocolate Suizo (2 Bolas)",4.5],[93,"10","Gelato de Pistacho",3],[94,"10","Sorbete de Limón",2.5],[95,"10","Sorbete de Fresa",2.5],[96,"10","Copa Sundae",6],[97,"10","Banana Split",7.5],[98,"10","Waffle con Helado",8],[99,"10","Milkshake Clásico",5.5],[100,"10","Café Espresso",2]
+  ].map(([id, restaurantId, name, price]) => ({
+    id: String(id),
+    restaurantId,
+    name,
+    category: "Menú Principal",
+    description: "Preparado al momento.",
+    price,
+    image: "",
+    alt: name
+  }));
+
   try {
     const cached = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) || "null");
     if (cached && Array.isArray(cached.restaurants) && Array.isArray(cached.dishes)) {
       restaurants = cached.restaurants;
       allDishes = cached.dishes;
-      sourceNote.hidden = true;
-      renderRestaurant();
-      updateCart();
     } else {
-      sourceNote.textContent = "Cargando el menú desde Oracle Cloud...";
+      restaurants = SEED_RESTAURANTS;
+      allDishes = SEED_DISHES;
     }
+    sourceNote.hidden = true;
+    renderRestaurant();
+    updateCart();
   } catch {
-    sourceNote.textContent = "Cargando el menú desde Oracle Cloud...";
+    restaurants = SEED_RESTAURANTS;
+    allDishes = SEED_DISHES;
+    sourceNote.hidden = true;
+    renderRestaurant();
+    updateCart();
   }
 
   // 2. Sincronización en segundo plano con Oracle Cloud
-  const [restaurantResponse, dishResponse] = await Promise.all([
-    fetch(`${apiBaseUrl}/restaurants`, { headers: { Accept: "application/json" } }),
-    fetch(`${apiBaseUrl}/dishes`, { headers: { Accept: "application/json" } })
-  ]);
-  if (!restaurantResponse.ok || !dishResponse.ok) {
-    if (restaurants.length > 0) return;
-    throw new Error(`La API respondió con HTTP ${restaurantResponse.status} (restaurantes) y HTTP ${dishResponse.status} (platillos).`);
-  }
-  const [restaurantPayload, dishPayload] = await Promise.all([
-    restaurantResponse.json(),
-    dishResponse.json()
-  ]);
-  const nextRestaurants = normalizeCollection(restaurantPayload, "restaurantes").map(r => normalizeRestaurant(r, apiBaseUrl));
-  const nextDishes = normalizeCollection(dishPayload, "platillos").map(record => normalizeDish(record, apiBaseUrl));
-  const restaurantIds = new Set(nextRestaurants.map(restaurant => restaurant.id));
-  if (nextDishes.some(dish => !restaurantIds.has(dish.restaurantId))) {
-    throw new Error("La API devolvió platillos vinculados a restaurantes que no existen.");
-  }
-
-  restaurants = nextRestaurants;
-  allDishes = nextDishes;
   try {
+    const [restaurantResponse, dishResponse] = await Promise.all([
+      fetch(`${apiBaseUrl}/restaurants`, { headers: { Accept: "application/json" } }),
+      fetch(`${apiBaseUrl}/dishes`, { headers: { Accept: "application/json" } })
+    ]);
+    if (!restaurantResponse.ok || !dishResponse.ok) return;
+    const [restaurantPayload, dishPayload] = await Promise.all([
+      restaurantResponse.json(),
+      dishResponse.json()
+    ]);
+    const nextRestaurants = normalizeCollection(restaurantPayload, "restaurantes").map(r => normalizeRestaurant(r, apiBaseUrl));
+    const nextDishes = normalizeCollection(dishPayload, "platillos").map(record => normalizeDish(record, apiBaseUrl));
+    const restaurantIds = new Set(nextRestaurants.map(restaurant => restaurant.id));
+    if (nextDishes.some(dish => !restaurantIds.has(dish.restaurantId))) return;
+
+    restaurants = nextRestaurants;
+    allDishes = nextDishes;
     localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({ restaurants: nextRestaurants, dishes: nextDishes, updatedAt: Date.now() }));
+    sourceNote.hidden = true;
+    renderRestaurant();
+    updateCart();
+
+    if (currentUser?.id) {
+      fetch(`${apiBaseUrl}/favorites?userId=${encodeURIComponent(currentUser.id)}`, {
+        headers: { Accept: "application/json" }
+      })
+        .then(res => (res.ok ? res.json() : null))
+        .then(payload => {
+          if (!payload) return;
+          const items = Array.isArray(payload) ? payload : (payload?.items ?? payload?.data);
+          if (!Array.isArray(items)) return;
+          const cloudIds = items.map(item => String(item.restaurantId ?? item.id_restaurante ?? item.id)).filter(Boolean);
+          localStorage.setItem(getSavedBookmarksKey(), JSON.stringify([...new Set(cloudIds)]));
+          updateBookmarkState();
+        })
+        .catch(() => {});
+    }
   } catch {
-    // ignore storage quota
+    // Si Oracle Cloud está en pausa (HTTP 571), se mantiene la copia en caché sin interrumpir al usuario
   }
-  sourceNote.hidden = true;
-  renderRestaurant();
-  updateCart();
 }
 
 if (topSearch) {
@@ -479,15 +529,30 @@ bookmarkButton?.addEventListener("click", () => {
   try {
     const key = getSavedBookmarksKey();
     const saved = new Set(JSON.parse(localStorage.getItem(key) || "[]"));
+    let action = "add";
     if (saved.has(currentRestaurant.id)) {
       saved.delete(currentRestaurant.id);
-      showNotice(`${currentRestaurant.name} se quitó de tus guardados.`);
+      action = "remove";
+      showNotice(`${currentRestaurant.name} se quitó de tus favoritos.`);
     } else {
       saved.add(currentRestaurant.id);
+      action = "add";
       showNotice(`${currentRestaurant.name} se guardó en tus restaurantes favoritos.`);
     }
     localStorage.setItem(key, JSON.stringify([...saved]));
     updateBookmarkState();
+
+    if (apiBaseUrl && currentUser?.id) {
+      fetch(`${apiBaseUrl}/favorites`, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=UTF-8" },
+        body: JSON.stringify({
+          userId: Number(currentUser.id),
+          restaurantId: Number(currentRestaurant.id),
+          action
+        })
+      }).catch(() => {});
+    }
   } catch {
     // ignore storage errors
   }
