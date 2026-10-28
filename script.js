@@ -11,6 +11,7 @@
     ];
     const favoriteIds = new Set(["burger", "pizza", "salad", "ramen"]);
     const cart = new Map();
+    const SESSION_STORAGE_KEY = "saborcito_user";
     let isAuthenticated = false;
     let filter = "Todos";
     let promoIndex = 0;
@@ -183,11 +184,7 @@
         filter = "Todos";
         document.querySelectorAll(".filter-button").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.filter === "Todos")));
         renderDishes();
-        if (restaurants.some(restaurant => restaurant.id === dish.restaurantId)) {
-          renderRestaurantMenu(dish.restaurantId);
-        } else {
-          document.querySelector("#favoritos").scrollIntoView({ behavior: "smooth" });
-        }
+        document.querySelector("#favoritos").scrollIntoView({ behavior: "smooth" });
       }
     });
     search.addEventListener("input", () => { renderSearchResults(); renderDishes(); });
@@ -205,13 +202,10 @@
     document.querySelector("#account-link").addEventListener("click", async event => {
       if (!isAuthenticated) return;
       event.preventDefault();
-      try {
-        const response = await fetch("/api/logout", { method: "POST" });
-        if (!response.ok) throw new Error("No se pudo cerrar la sesión.");
-        window.location.reload();
-      } catch {
-        showNotice("No se pudo cerrar la sesión. Inténtalo de nuevo.");
-      }
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+      fetch("/api/logout", { method: "POST" }).catch(() => {});
+      updateAuthentication(null);
+      showNotice("Has cerrado tu sesión.");
     });
     document.querySelector("#close-cart").addEventListener("click", closeCart);
     backdrop.addEventListener("click", closeCart);
@@ -244,10 +238,14 @@
     renderDishes();
     updateOrderButtons();
     updateCart();
-    fetch("/api/session")
-      .then(response => {
-        if (!response.ok) throw new Error("No se pudo verificar la sesión.");
-        return response.json();
-      })
-      .then(({ user }) => updateAuthentication(user))
-      .catch(() => showNotice("No se pudo verificar la sesión. La conexión de autenticación cloud aún debe configurarse."));
+
+    try {
+      const savedUser = JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) || "null");
+      if (savedUser && savedUser.email) {
+        updateAuthentication(savedUser);
+      } else {
+        updateAuthentication(null);
+      }
+    } catch {
+      updateAuthentication(null);
+    }

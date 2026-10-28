@@ -42,14 +42,15 @@ Campos requeridos: `id`, `name`. `category`, `icon`, `rating`, `time` (o `delive
       "description": "Doble carne, cheddar y salsa de la casa.",
       "price": 189,
       "image": "https://cdn.ejemplo.com/platos/smash.jpg",
-      "alt": "Hamburguesa con queso"
+      "alt": "Hamburguesa con queso",
+      "isPromotion": true
     }
   ]
 }
 ```
 
-Campos requeridos: `id`, `restaurantId`, `name` y `price` numérico no negativo. `restaurantId` debe coincidir con el `id` de un restaurante. `category`, `description`, `image` y `alt` son opcionales.
+Campos requeridos: `id`, `restaurantId`, `name` y `price` numérico no negativo. `restaurantId` debe coincidir con el `id` de un restaurante. `category`, `description`, `image` y `alt` son opcionales. `isPromotion` es opcional y debe ser booleano; `true` incluye el plato en la sección de promociones exclusivas de su restaurante.
 
-La página independiente `restaurants.html` solicita ambos recursos, valida los campos y genera las tarjetas y el menú del restaurante desde las respuestas. Los menús tienen una URL propia, por ejemplo `restaurants.html?restaurant=restaurante-123`. Si la URL base no está configurada, muestra los datos de ejemplo. Si la API falla, muestra el error en vez de sustituirlo silenciosamente por datos de ejemplo.
+La página independiente `restaurants.html?restaurant=restaurante-123` solicita ambos recursos, valida los campos y muestra únicamente el restaurante indicado y sus platos. La sección de promociones se genera con platos que tengan `isPromotion: true`; las demás secciones del menú se crean dinámicamente a partir de las categorías recibidas. Si falta el identificador, no está configurada la URL base o la API falla, la página muestra un error en vez de presentar restaurantes o platos de ejemplo.
 
 No coloques contraseñas, claves privadas ni credenciales de administrador en el HTML o JavaScript público. La API debe exponer únicamente datos públicos del catálogo y aplicar sus propias reglas de acceso. La configuración de autenticación de usuarios es independiente de este catálogo.

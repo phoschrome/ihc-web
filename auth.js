@@ -6,6 +6,8 @@ const confirmField = document.querySelector("#confirm-field");
 const confirmPassword = document.querySelector("#confirm-password");
 const password = document.querySelector("#password");
 const feedback = document.querySelector("#auth-feedback");
+const apiBase = (document.querySelector('meta[name="saborcito-api-base-url"]')?.content || "").trim().replace(/\/+$/, "");
+const SESSION_STORAGE_KEY = "saborcito_user";
 let mode = "login";
 
 function setMode(nextMode) {
@@ -60,19 +62,23 @@ form.addEventListener("submit", async event => {
 
   const submitButton = document.querySelector("#submit-button");
   submitButton.disabled = true;
-  feedback.textContent = mode === "register" ? "Creando tu cuenta..." : "Verificando tus datos...";
+  feedback.textContent = mode === "register" ? "Creando tu cuenta en Oracle Cloud..." : "Verificando tus datos en Oracle Cloud...";
   try {
-    const response = await fetch(`/api/${mode === "register" ? "register" : "login"}`, {
+    const endpoint = apiBase
+      ? `${apiBase}/${mode === "register" ? "register" : "login"}`
+      : `/api/${mode === "register" ? "register" : "login"}`;
+
+    const response = await fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
       body: JSON.stringify({
         name: fullName.value.trim(),
-        email: document.querySelector("#email").value.trim(),
+        email: document.querySelector("#email").value.trim().toLowerCase(),
         password: password.value
       })
     });
     if (response.status === 404) {
-      throw new Error("El servicio de autenticación aún no está conectado. Configura la API de tu proveedor cloud para habilitar el acceso.");
+      throw new Error("El endpoint de usuarios aún no está publicado en Oracle Cloud. Ejecuta el bloque SQL de usuarios.");
     }
     let result;
     try {
@@ -80,11 +86,16 @@ form.addEventListener("submit", async event => {
     } catch {
       throw new Error("El servicio de autenticación devolvió una respuesta no válida.");
     }
-    if (!response.ok) throw new Error(result.error || "No se pudo completar el acceso.");
-    window.location.replace("/index.html");
+    if (!response.ok || result.ok === false) {
+      throw new Error(result.error || "No se pudo completar el acceso.");
+    }
+    if (result.user) {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(result.user));
+    }
+    window.location.replace("index.html");
   } catch (error) {
     feedback.textContent = error instanceof TypeError
-      ? "No se pudo conectar con el servicio de autenticación. Verifica la configuración de la API cloud."
+      ? "No se pudo conectar con Oracle Cloud. Verifica tu conexión o el bloque ORDS de usuarios."
       : error.message;
   } finally {
     submitButton.disabled = false;
@@ -94,14 +105,11 @@ form.addEventListener("submit", async event => {
 const initialMode = new URLSearchParams(window.location.search).get("modo");
 if (initialMode === "registro") setMode("register");
 
-fetch("/api/session")
-  .then(response => {
-    if (!response.ok) throw new Error("No se pudo verificar la sesión.");
-    return response.json();
-  })
-  .then(({ user }) => {
-    if (user) window.location.replace("/index.html");
-  })
-  .catch(() => {
-    feedback.textContent = "El servicio de autenticación aún no está disponible. Configura la API cloud para habilitar el acceso.";
-  });
+try {
+  const savedUser = JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) || "null");
+  if (savedUser && savedUser.email) {
+    window.location.replace("index.html");
+  }
+} catch {
+  localStorage.removeItem(SESSION_STORAGE_KEY);
+}
