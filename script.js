@@ -48,7 +48,7 @@
     }
 
     function getUserKey() {
-      return currentUser?.id || currentUser?.email || "anon";
+      return String(currentUser?.email || currentUser?.id || "anon").trim().toLowerCase();
     }
 
     function getSavedBookmarksKey() {
@@ -170,17 +170,20 @@
     async function syncFavoritesFromCloud() {
       const apiBase = (document.querySelector('meta[name="saborcito-api-base-url"]')?.content || "").trim().replace(/\/+$/, "");
       if (!apiBase || !currentUser?.id) return;
+      if (localStorage.getItem(getSavedBookmarksKey()) !== null) return;
       try {
         const response = await fetch(`${apiBase}/favorites?userId=${encodeURIComponent(currentUser.id)}`, {
           headers: { Accept: "application/json" }
         });
-        if (!response.ok) return;
+        if (!response.ok || localStorage.getItem(getSavedBookmarksKey()) !== null) return;
         const payload = await response.json();
         const items = Array.isArray(payload) ? payload : (payload?.items ?? payload?.data);
-        if (!Array.isArray(items)) return;
+        if (!Array.isArray(items) || items.length === 0) return;
         const cloudIds = items.map(item => String(item.restaurantId ?? item.id_restaurante ?? item.id)).filter(Boolean);
-        localStorage.setItem(getSavedBookmarksKey(), JSON.stringify([...new Set(cloudIds)]));
-        renderFavoriteRestaurants();
+        if (cloudIds.length > 0) {
+          localStorage.setItem(getSavedBookmarksKey(), JSON.stringify([...new Set(cloudIds)]));
+          renderFavoriteRestaurants();
+        }
       } catch {
         // Si Oracle Cloud está en pausa, mantiene la copia en caché local
       }
@@ -333,3 +336,11 @@
     } catch {
       updateAuthentication(null);
     }
+
+    window.addEventListener("pageshow", () => {
+      renderFavoriteRestaurants();
+    });
+
+    window.addEventListener("storage", () => {
+      renderFavoriteRestaurants();
+    });

@@ -42,7 +42,7 @@ function showNotice(message) {
 }
 
 function getUserKey() {
-  return currentUser?.id || currentUser?.email || "anon";
+  return String(currentUser?.email || currentUser?.id || "anon").trim().toLowerCase();
 }
 
 function getOrderHistoryKey(restaurantId) {
@@ -106,8 +106,9 @@ function saveLocalRecentDishIds(restaurantId, newDishIds) {
 function updateBookmarkState() {
   if (!bookmarkButton || !currentRestaurant) return;
   try {
-    const saved = new Set(JSON.parse(localStorage.getItem(getSavedBookmarksKey()) || "[]"));
-    const isBookmarked = saved.has(currentRestaurant.id);
+    const parsed = JSON.parse(localStorage.getItem(getSavedBookmarksKey()) || "[]");
+    const saved = new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+    const isBookmarked = saved.has(String(currentRestaurant.id));
     bookmarkButton.setAttribute("aria-pressed", String(isBookmarked));
   } catch {
     bookmarkButton.setAttribute("aria-pressed", "false");
@@ -494,18 +495,20 @@ async function loadCloudCatalog() {
     renderRestaurant();
     updateCart();
 
-    if (currentUser?.id) {
+    if (currentUser?.id && localStorage.getItem(getSavedBookmarksKey()) === null) {
       fetch(`${apiBaseUrl}/favorites?userId=${encodeURIComponent(currentUser.id)}`, {
         headers: { Accept: "application/json" }
       })
         .then(res => (res.ok ? res.json() : null))
         .then(payload => {
-          if (!payload) return;
+          if (!payload || localStorage.getItem(getSavedBookmarksKey()) !== null) return;
           const items = Array.isArray(payload) ? payload : (payload?.items ?? payload?.data);
-          if (!Array.isArray(items)) return;
+          if (!Array.isArray(items) || items.length === 0) return;
           const cloudIds = items.map(item => String(item.restaurantId ?? item.id_restaurante ?? item.id)).filter(Boolean);
-          localStorage.setItem(getSavedBookmarksKey(), JSON.stringify([...new Set(cloudIds)]));
-          updateBookmarkState();
+          if (cloudIds.length > 0) {
+            localStorage.setItem(getSavedBookmarksKey(), JSON.stringify([...new Set(cloudIds)]));
+            updateBookmarkState();
+          }
         })
         .catch(() => {});
     }
@@ -528,14 +531,16 @@ bookmarkButton?.addEventListener("click", () => {
   if (!currentRestaurant) return;
   try {
     const key = getSavedBookmarksKey();
-    const saved = new Set(JSON.parse(localStorage.getItem(key) || "[]"));
+    const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+    const saved = new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+    const restId = String(currentRestaurant.id);
     let action = "add";
-    if (saved.has(currentRestaurant.id)) {
-      saved.delete(currentRestaurant.id);
+    if (saved.has(restId)) {
+      saved.delete(restId);
       action = "remove";
       showNotice(`${currentRestaurant.name} se quitó de tus favoritos.`);
     } else {
-      saved.add(currentRestaurant.id);
+      saved.add(restId);
       action = "add";
       showNotice(`${currentRestaurant.name} se guardó en tus restaurantes favoritos.`);
     }
@@ -656,3 +661,11 @@ try {
   localStorage.removeItem("saborcito_user");
   window.location.replace("auth.html");
 }
+
+window.addEventListener("pageshow", () => {
+  updateBookmarkState();
+});
+
+window.addEventListener("storage", () => {
+  updateBookmarkState();
+});
