@@ -115,6 +115,18 @@ function updateBookmarkState() {
   }
 }
 
+const PROMO_FALLBACK_DISHES = [
+  { id: "burger", restaurantId: "2", name: "La clásica smash", price: 189 },
+  { id: "pizza", restaurantId: "1", name: "Pizza margarita", price: 220 },
+  { id: "salad", restaurantId: "7", name: "Bowl arcoíris", price: 165 },
+  { id: "ramen", restaurantId: "6", name: "Ramen de la casa", price: 198 }
+];
+
+function findCartDish(id) {
+  return allDishes.find(item => String(item.id) === String(id)) ||
+    PROMO_FALLBACK_DISHES.find(item => String(item.id) === String(id));
+}
+
 function updateCart() {
   saveCartToCache();
   const items = [...cart.entries()];
@@ -126,7 +138,7 @@ function updateCart() {
     cartButton.setAttribute("aria-label", `Abrir carrito, ${count} ${count === 1 ? "producto" : "productos"}`);
   }
   const total = items.reduce((sum, [id, quantity]) => {
-    const dish = allDishes.find(item => item.id === id);
+    const dish = findCartDish(id);
     return sum + (dish ? dish.price * quantity : 0);
   }, 0);
   const cartTotal = document.querySelector("#cart-total");
@@ -135,7 +147,7 @@ function updateCart() {
   if (cartItems) {
     cartItems.innerHTML = items.length
       ? items.map(([id, quantity]) => {
-        const dish = allDishes.find(item => item.id === id);
+        const dish = findCartDish(id);
         if (!dish) return "";
         return `<div class="cart-item"><div><strong>${escapeHTML(dish.name)}</strong><p>$${escapeHTML(dish.price.toFixed(2))} · Subtotal $${escapeHTML((dish.price * quantity).toFixed(2))}</p></div><div class="quantity-controls"><button type="button" data-quantity="${escapeHTML(id)}" data-delta="-1" aria-label="Quitar una unidad de ${escapeHTML(dish.name)}">−</button><span aria-label="Cantidad">${quantity}</span><button type="button" data-quantity="${escapeHTML(id)}" data-delta="1" aria-label="Añadir una unidad de ${escapeHTML(dish.name)}">+</button></div></div>`;
       }).join("")
@@ -601,29 +613,8 @@ document.querySelector("#checkout-button")?.addEventListener("click", () => {
     showNotice("Añade algo delicioso a tu carrito para continuar.");
     return;
   }
-
-  // Agrupar los productos pedidos por restaurante y guardar los últimos 3 en la caché del navegador
-  const dishesByRestaurant = new Map();
-  for (const dishId of cart.keys()) {
-    const dish = allDishes.find(item => item.id === dishId);
-    const restId = dish?.restaurantId || currentRestaurant?.id;
-    if (!restId) continue;
-    if (!dishesByRestaurant.has(restId)) dishesByRestaurant.set(restId, []);
-    dishesByRestaurant.get(restId).push(dishId);
-  }
-
-  for (const [restId, dishIds] of dishesByRestaurant.entries()) {
-    const updated = saveLocalRecentDishIds(restId, dishIds);
-    if (currentRestaurant && currentRestaurant.id === String(restId)) {
-      recentDishIds = updated;
-    }
-  }
-
-  renderRecentOrders();
-  cart.clear();
-  updateCart();
   closeCart();
-  showNotice("¡Pedido realizado! Se actualizaron tus Últimos pedidos en este restaurante.");
+  window.location.href = "checkout.html";
 });
 
 try {
@@ -663,9 +654,21 @@ try {
 }
 
 window.addEventListener("pageshow", () => {
+  loadCartFromCache();
+  updateCart();
   updateBookmarkState();
+  if (currentRestaurant) {
+    recentDishIds = getLocalRecentDishIds(currentRestaurant.id);
+    renderRecentOrders();
+  }
 });
 
 window.addEventListener("storage", () => {
+  loadCartFromCache();
+  updateCart();
   updateBookmarkState();
+  if (currentRestaurant) {
+    recentDishIds = getLocalRecentDishIds(currentRestaurant.id);
+    renderRecentOrders();
+  }
 });
